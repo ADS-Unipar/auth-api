@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
@@ -5,7 +6,8 @@ const User = require('./models/User');
 const hashPassword = require('./middlewares/hashPassword');
 const port = 3000;
 const db = require('./db');
-const { generateToken } = require('./middlewares/authService');
+const { generateToken, authenticateToken } = require('./middlewares/authService');
+const { send } = require('express/lib/response');
 app.use(express.json());
 
 db.sync();
@@ -15,8 +17,13 @@ app.get('/', (req, res) => {
 });
 
 app.post('/register', hashPassword, async (req, res) => {
-  const user = await User.create({ ...req.body });
-  res.send(user);
+  try {
+    const user = await User.create({ ...req.body });
+    res.send(user);
+  } catch (error) {
+    res.status(500).send(error)
+  }
+  
 });
 
 app.post('/login', async (req, res) => {
@@ -33,6 +40,12 @@ app.post('/login', async (req, res) => {
   delete user.dataValues.password;
   res.send({ user, token });
 });
+
+app.get('/users', authenticateToken, async (req, res)=>{
+  
+  const users = await User.findAll();
+  res.send(users)
+})
 
 app.listen(port, () => {
   console.log(`app on http://localhost:${port}`);
