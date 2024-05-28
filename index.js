@@ -7,7 +7,10 @@ const hashPassword = require('./middlewares/hashPassword');
 const port = 3000;
 const db = require('./db');
 const { generateToken, authenticateToken } = require('./middlewares/authService');
-const { send } = require('express/lib/response');
+const cors = require('cors');
+app.use(cors({
+    origin: "*"
+}));
 app.use(express.json());
 
 db.sync();
